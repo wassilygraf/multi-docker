@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t wassily/react-test -f ./client/Dockerfile.dev ./client
+  # - docker build myotherOtherProject
+
+script:
+  - docker run wassily/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t wassily/multi-client ./client
+  - docker build -t wassily/multi-api ./api
+  - docker build -t wassily/multi-nginx ./nginx
+  - docker build -t wassily/multi-worker ./worker
+  # Log in to docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # take those images and push them to docker hub
+  - docker push wassily/multi-client
+  - docker push wassily/multi-api
+  - docker push wassily/multi-nginx
+  - docker push wassily/multi-worker
